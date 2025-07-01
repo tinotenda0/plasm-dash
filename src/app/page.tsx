@@ -1,15 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { PostsList } from '@/components/posts-list'
+import { OptimizedPostsList } from '@/components/optimized-posts-list'
 import { PostsHeader } from '@/components/posts-header'
+import { LazyLoad } from '@/components/lazy-load'
 import { BlogPost } from '@/types/blog'
-import { fetchAllPosts } from '@/lib/api'
+import { fetchPostsMetadata } from '@/lib/api'
+import { usePerformanceMonitor } from '@/lib/performance'
 
 export default function PostsPage() {
   const [posts, setPosts] = useState<BlogPost[]>([])
   const [filteredPosts, setFilteredPosts] = useState<BlogPost[]>([])
   const [loading, setLoading] = useState(true)
+  const [useOptimizedView, setUseOptimizedView] = useState(true)
+  
+  const { startMeasure, endMeasure } = usePerformanceMonitor()
 
   useEffect(() => {
     loadPosts()
@@ -18,9 +24,14 @@ export default function PostsPage() {
   const loadPosts = async () => {
     try {
       setLoading(true)
-      const fetchedPosts = await fetchAllPosts()
-      setPosts(fetchedPosts)
-      setFilteredPosts(fetchedPosts)
+      startMeasure('page-load')
+      
+      // Load lightweight metadata first for faster initial render
+      const fetchedPosts = await fetchPostsMetadata()
+      setPosts(fetchedPosts as BlogPost[])
+      setFilteredPosts(fetchedPosts as BlogPost[])
+      
+      endMeasure('page-load')
     } catch (error) {
       console.error('Error loading posts:', error)
     } finally {
@@ -35,13 +46,66 @@ export default function PostsPage() {
   return (
     <div className="flex flex-col h-full">
       <PostsHeader posts={posts} onFilter={handleFilter} />
-      <div className="flex-1 overflow-auto">
+      
+      {/* Performance toggle for development */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mx-6 mb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-medium text-yellow-800">Performance Mode</h3>
+              <p className="text-sm text-yellow-700">
+                Toggle between optimized and standard post loading
+              </p>
+            </div>
+            <button
+              onClick={() => setUseOptimizedView(!useOptimizedView)}
+              className={`px-4 py-2 rounded-md text-sm font-medium ${
+                useOptimizedView
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-gray-100 text-gray-800'
+              }`}
+            >
+              {useOptimizedView ? 'Optimized' : 'Standard'}
+            </button>
+          </div>
+        </div>
+      )}
+      
+      <div className="flex-1 overflow-auto px-6">
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
         ) : (
-          <PostsList posts={filteredPosts} onPostsUpdate={loadPosts} />
+          <Suspense
+            fallback={
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="bg-gray-200 h-48 rounded-lg mb-4"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  </div>
+                ))}
+              </div>
+            }
+          >
+            {useOptimizedView ? (
+              <LazyLoad threshold={0.1}>
+                <OptimizedPostsList
+                  initialPosts={filteredPosts}
+                  onPostsUpdate={loadPosts}
+                  pageSize={12}
+                  enableVirtualization={true}
+                />
+              </LazyLoad>
+            ) : (
+              <PostsList 
+                posts={filteredPosts}
+                onPostsUpdate={loadPosts}
+              />
+            )}
+          </Suspense>
         )}
       </div>
     </div>
