@@ -10,6 +10,7 @@ export interface BlogPost {
   excerpt?: string
   content?: any[]
   publishedAt?: string
+  scheduledDate?: string
   status: 'draft' | 'published' | 'scheduled'
   tags?: string[]
   category?: string
@@ -47,4 +48,24 @@ export interface CalendarEvent {
   type: 'published' | 'planned' | 'draft'
   post?: BlogPost
   plannedPost?: PlannedPost
+}
+
+export interface ContentTemplate {
+  id: string
+  name: string
+  description: string
+  category: 'tutorial' | 'review' | 'news' | 'personal' | 'technical' | 'other'
+  content: string
+  fields: TemplateField[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface TemplateField {
+  id: string
+  name: string
+  type: 'text' | 'textarea' | 'select' | 'number'
+  placeholder?: string
+  options?: string[]
+  required?: boolean
 }

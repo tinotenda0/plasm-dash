@@ -1,18 +1,33 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Edit, Trash2, ExternalLink, Clock, Calendar, Tag } from 'lucide-react'
+import { Edit, Trash2, ExternalLink, Clock, Calendar, Tag, Square, CheckSquare } from 'lucide-react'
 import { fetchAllPosts, deletePost } from '@/lib/api'
 import { BlogPost } from '@/types/blog'
 import { formatDate, truncateText } from '@/lib/utils'
+import { EnhancedPostEditor } from './enhanced-post-editor'
+import { BulkOperations } from './bulk-operations'
 
-export function PostsList() {
-  const [posts, setPosts] = useState<BlogPost[]>([])
-  const [loading, setLoading] = useState(true)
+export function PostsList({ posts: initialPosts = [], onPostsUpdate }: { 
+  posts?: BlogPost[], 
+  onPostsUpdate?: () => void 
+}) {
+  const [posts, setPosts] = useState<BlogPost[]>(initialPosts)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [editingPost, setEditingPost] = useState<BlogPost | null>(null)
+  const [isEditorOpen, setIsEditorOpen] = useState(false)
+  const [selectedPosts, setSelectedPosts] = useState<string[]>([])
+
+  // Update posts when props change
+  useEffect(() => {
+    setPosts(initialPosts)
+  }, [initialPosts])
 
   useEffect(() => {
-    loadPosts()
+    if (initialPosts.length === 0) {
+      loadPosts()
+    }
   }, [])
 
   const loadPosts = async () => {
@@ -21,12 +36,25 @@ export function PostsList() {
       const fetchedPosts = await fetchAllPosts()
       setPosts(fetchedPosts)
       setError(null)
+      onPostsUpdate?.()
     } catch (err) {
       setError('Failed to load posts. Please check your Sanity configuration.')
       console.error('Error loading posts:', err)
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleEditPost = (post: BlogPost) => {
+    setEditingPost(post)
+    setIsEditorOpen(true)
+  }
+
+  const handleCloseEditor = () => {
+    setEditingPost(null)
+    setIsEditorOpen(false)
+    // Refresh posts after editing
+    loadPosts()
   }
 
   const handleDeletePost = async (postId: string) => {
@@ -38,6 +66,7 @@ export function PostsList() {
       const success = await deletePost(postId)
       if (success) {
         setPosts(posts.filter(post => post._id !== postId))
+        setSelectedPosts(selectedPosts.filter(id => id !== postId))
       } else {
         alert('Failed to delete post')
       }
@@ -45,6 +74,14 @@ export function PostsList() {
       console.error('Error deleting post:', error)
       alert('Failed to delete post')
     }
+  }
+
+  const handlePostSelection = (postId: string) => {
+    setSelectedPosts(prev => 
+      prev.includes(postId) 
+        ? prev.filter(id => id !== postId)
+        : [...prev, postId]
+    )
   }
 
   const getStatusColor = (status: string) => {
@@ -115,13 +152,41 @@ export function PostsList() {
 
   return (
     <div className="p-6">
+      {/* Bulk Operations */}
+      {posts.length > 0 && (
+        <div className="mb-6">
+          <BulkOperations
+            posts={posts}
+            selectedPosts={selectedPosts}
+            onSelectionChange={setSelectedPosts}
+            onPostsUpdate={loadPosts}
+          />
+        </div>
+      )}
+
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {posts.map((post) => (
           <div
             key={post._id}
-            className="relative overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow"
+            className={`relative overflow-hidden rounded-lg border bg-white shadow-sm hover:shadow-md transition-shadow ${
+              selectedPosts.includes(post._id) ? 'border-blue-300 ring-2 ring-blue-100' : 'border-gray-200'
+            }`}
           >
-            <div className="p-4">
+            {/* Selection Checkbox */}
+            <div className="absolute top-3 left-3 z-10">
+              <button
+                onClick={() => handlePostSelection(post._id)}
+                className="rounded-md bg-white p-1 shadow-sm hover:bg-gray-50"
+              >
+                {selectedPosts.includes(post._id) ? (
+                  <CheckSquare className="h-4 w-4 text-blue-600" />
+                ) : (
+                  <Square className="h-4 w-4 text-gray-400" />
+                )}
+              </button>
+            </div>
+
+            <div className="p-4 pt-12">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
@@ -175,7 +240,10 @@ export function PostsList() {
             
             <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-4 py-3">
               <div className="flex space-x-2">
-                <button className="inline-flex items-center rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                <button 
+                  onClick={() => handleEditPost(post)}
+                  className="inline-flex items-center rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
                   <Edit className="mr-1 h-3 w-3" />
                   Edit
                 </button>
@@ -199,6 +267,13 @@ export function PostsList() {
           </div>
         ))}
       </div>
+      
+      <EnhancedPostEditor
+        isOpen={isEditorOpen}
+        onClose={handleCloseEditor}
+        post={editingPost}
+        mode="edit"
+      />
     </div>
   )
 }
