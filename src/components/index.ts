@@ -1,5 +1,7 @@
 // Component exports for easier imports
 export * from './sidebar'
+export * from './sidebar-new'
+export * from './page-header'
 export * from './posts-list'
 export * from './posts-header'
 export * from './new-post-modal'
