@@ -1,6 +1,81 @@
-import { sanityClient } from '@/lib/sanity'
+import { sanityClient, isDemoMode } from '@/lib/sanity'
 import { BlogPost, PlannedPost } from '@/types/blog'
 import { CacheManager, debounce } from '@/lib/performance'
+
+// Demo data for when Sanity is not configured
+const demoData = {
+  posts: [
+    {
+      _id: 'demo-1',
+      _type: 'post' as const,
+      _createdAt: '2025-06-15T10:00:00Z',
+      _updatedAt: '2025-06-15T10:00:00Z',
+      title: 'Getting Started with Next.js 15',
+      slug: { current: 'getting-started-nextjs-15' },
+      excerpt: 'Learn how to build modern web applications with the latest features in Next.js 15.',
+      content: [{ _type: 'block', children: [{ text: 'This is a demo post to showcase the blog dashboard...' }] }],
+      publishedAt: '2025-06-15T10:00:00Z',
+      status: 'published' as const,
+      tags: ['nextjs', 'react', 'web-development'],
+      category: 'Tutorial',
+      author: { name: 'Demo Author', email: 'demo@example.com' },
+      featuredImage: {
+        asset: { _ref: 'demo-image-1' },
+        alt: 'Next.js development setup'
+      },
+      seo: {
+        metaTitle: 'Getting Started with Next.js 15',
+        metaDescription: 'Learn Next.js 15 features and best practices'
+      }
+    },
+    {
+      _id: 'demo-2',
+      _type: 'post' as const,
+      _createdAt: '2025-06-10T14:30:00Z',
+      _updatedAt: '2025-06-10T14:30:00Z',
+      title: 'TypeScript Best Practices',
+      slug: { current: 'typescript-best-practices' },
+      excerpt: 'Essential TypeScript patterns and practices for modern development.',
+      content: [{ _type: 'block', children: [{ text: 'This is another demo post showcasing TypeScript...' }] }],
+      publishedAt: '2025-06-10T14:30:00Z',
+      status: 'published' as const,
+      tags: ['typescript', 'javascript', 'best-practices'],
+      category: 'Guide',
+      author: { name: 'Demo Author', email: 'demo@example.com' },
+      featuredImage: {
+        asset: { _ref: 'demo-image-2' },
+        alt: 'TypeScript code on screen'
+      },
+      seo: {
+        metaTitle: 'TypeScript Best Practices',
+        metaDescription: 'Learn TypeScript best practices and patterns'
+      }
+    },
+    {
+      _id: 'demo-3',
+      _type: 'post' as const,
+      _createdAt: '2025-06-05T09:15:00Z',
+      _updatedAt: '2025-06-05T09:15:00Z',
+      title: 'Building Responsive UIs with Tailwind CSS',
+      slug: { current: 'responsive-ui-tailwind' },
+      excerpt: 'Create beautiful, responsive user interfaces using Tailwind CSS utility classes.',
+      content: [{ _type: 'block', children: [{ text: 'Demo content about Tailwind CSS and responsive design...' }] }],
+      publishedAt: '2025-06-05T09:15:00Z',
+      status: 'draft' as const,
+      tags: ['tailwind', 'css', 'responsive-design'],
+      category: 'Design',
+      author: { name: 'Demo Author', email: 'demo@example.com' },
+      featuredImage: {
+        asset: { _ref: 'demo-image-3' },
+        alt: 'Responsive web design mockup'
+      },
+      seo: {
+        metaTitle: 'Building Responsive UIs with Tailwind CSS',
+        metaDescription: 'Learn responsive design with Tailwind CSS'
+      }
+    }
+  ] satisfies BlogPost[]
+}
 
 // Request deduplication map
 const pendingRequests = new Map<string, Promise<any>>()
@@ -152,6 +227,10 @@ export const sanityQueries = {
 }
 
 export async function fetchAllPosts(): Promise<BlogPost[]> {
+  if (isDemoMode) {
+    return demoData.posts
+  }
+
   return cachedQuery(
     'all-posts',
     async () => {
@@ -168,6 +247,10 @@ export async function fetchAllPosts(): Promise<BlogPost[]> {
 }
 
 export async function fetchPostBySlug(slug: string): Promise<BlogPost | null> {
+  if (isDemoMode) {
+    return demoData.posts.find(post => post.slug.current === slug) || null
+  }
+
   return cachedQuery(
     `post-${slug}`,
     async () => {
@@ -188,6 +271,15 @@ export async function fetchPostsPaginated(
   page: number = 1,
   limit: number = 10
 ): Promise<{ posts: BlogPost[]; total: number; hasMore: boolean }> {
+  if (isDemoMode) {
+    const offset = (page - 1) * limit
+    const posts = demoData.posts.slice(offset, offset + limit)
+    const total = demoData.posts.length
+    const hasMore = offset + limit < total
+    
+    return { posts, total, hasMore }
+  }
+
   const offset = (page - 1) * limit
   
   const [posts, total] = await Promise.all([
@@ -225,6 +317,17 @@ export async function fetchPostsPaginated(
 }
 
 export async function fetchPostsMetadata(): Promise<Partial<BlogPost>[]> {
+  if (isDemoMode) {
+    return demoData.posts.map(post => ({
+      _id: post._id,
+      title: post.title,
+      slug: post.slug,
+      publishedAt: post.publishedAt,
+      status: post.status,
+      tags: post.tags
+    }))
+  }
+
   return cachedQuery(
     'posts-metadata',
     async () => {
@@ -345,9 +448,11 @@ export function updatePlannedPost(id: string, updates: Partial<PlannedPost>): Pl
 export function deletePlannedPost(id: string): boolean {
   const posts = getPlannedPosts()
   const filteredPosts = posts.filter(post => post.id !== id)
-
-  if (filteredPosts.length === posts.length) return false
-
+  
+  if (filteredPosts.length === posts.length) {
+    return false // Post not found
+  }
+  
   savePlannedPosts(filteredPosts)
   return true
 }

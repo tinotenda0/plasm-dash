@@ -198,10 +198,14 @@ const PostItem = React.memo(({
         </div>
 
         {/* Featured image */}
-        {post.featuredImage?.asset && 'url' in post.featuredImage.asset && (
+        {post.featuredImage?.asset && (
           <div className="px-4 pb-4">
             <OptimizedImage
-              src={(post.featuredImage.asset as any).url}
+              src={
+                'url' in post.featuredImage.asset
+                  ? (post.featuredImage.asset as any).url
+                  : post.featuredImage.asset._ref
+              }
               alt={post.featuredImage.alt || post.title}
               width={400}
               height={200}

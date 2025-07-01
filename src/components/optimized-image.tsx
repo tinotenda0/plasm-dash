@@ -3,6 +3,18 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { isDemoMode } from '@/lib/sanity';
+
+// Demo image utility
+function getDemoImageUrl(imageRef: string, width: number = 800, height: number = 400): string {
+  const imageMap: Record<string, string> = {
+    'demo-image-1': `https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=${width}&h=${height}&fit=crop&auto=format`,
+    'demo-image-2': `https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=${width}&h=${height}&fit=crop&auto=format`,
+    'demo-image-3': `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=${width}&h=${height}&fit=crop&auto=format`,
+  };
+
+  return imageMap[imageRef] || `https://via.placeholder.com/${width}x${height}/2563eb/ffffff?text=Demo+Image`;
+}
 
 interface OptimizedImageProps {
   src: string;
@@ -34,6 +46,11 @@ export function OptimizedImage({
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
+  // Handle demo mode images
+  const imageSource = isDemoMode && src.startsWith('demo-image-') 
+    ? getDemoImageUrl(src, width, height)
+    : src;
+
   const handleLoad = () => {
     setIsLoading(false);
     onLoad?.();
@@ -61,7 +78,7 @@ export function OptimizedImage({
   return (
     <div className={cn('relative overflow-hidden', className)}>
       <Image
-        src={src}
+        src={imageSource}
         alt={alt}
         width={fill ? undefined : width}
         height={fill ? undefined : height}
@@ -94,12 +111,12 @@ export function generateBlurDataURL(width: number = 10, height: number = 10): st
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext('2d');
-  
+
   if (ctx) {
     ctx.fillStyle = '#f3f4f6';
     ctx.fillRect(0, 0, width, height);
   }
-  
+
   return canvas.toDataURL();
 }
 
