@@ -351,7 +351,7 @@ export function MediaManager({ isOpen, onClose, onSelectImage, mode = 'manage' }
                         {file.dimensions && (
                           <span> • {file.dimensions.width}×{file.dimensions.height}</span>
                         )}
-                        <span> • {new Date(file.uploadedAt).toLocaleDateString()}</span>
+                        <span> • {file.uploadedAt ? new Date(file.uploadedAt).toLocaleDateString() : 'Date unavailable'}</span>
                       </div>
                       
                       {mode !== 'select' && (

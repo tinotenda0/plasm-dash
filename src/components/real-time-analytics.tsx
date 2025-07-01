@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, Users, Eye, Clock, Star } from 'lucide-react';
 import { LazyLoad } from './lazy-load';
 import { LineChart } from './charts';
+import { safeFormatDate } from '@/lib/utils';
 
 interface AnalyticsMetric {
   label: string;
@@ -275,7 +276,7 @@ export function RealTimeAnalytics() {
                       <h4 className="font-medium text-gray-900">{post.title}</h4>
                     </div>
                     <p className="text-sm text-gray-500">
-                      Published {new Date(post.publishedAt).toLocaleDateString()}
+                      Published {safeFormatDate(post.publishedAt)}
                     </p>
                   </div>
                   <div className="flex items-center gap-6 text-sm">

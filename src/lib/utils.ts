@@ -4,8 +4,13 @@ export function cn(...inputs: ClassValue[]) {
   return clsx(inputs)
 }
 
-export function formatDate(date: string | Date, format: 'short' | 'long' | 'relative' = 'short') {
+export function formatDate(date: string | Date | null | undefined, format: 'short' | 'long' | 'relative' = 'short') {
+  if (!date) return 'Date unavailable'
+  
   const dateObj = typeof date === 'string' ? new Date(date) : date
+  
+  // Check if the date is valid
+  if (isNaN(dateObj.getTime())) return 'Invalid date'
   
   if (format === 'relative') {
     const now = new Date()
@@ -47,4 +52,18 @@ export function generateSlug(title: string): string {
 export function truncateText(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text
   return text.substring(0, maxLength).replace(/\s+\S*$/, '') + '...'
+}
+
+// Safe date formatting utility
+export function safeFormatDate(date: string | Date | null | undefined, fallback: string = 'Date unavailable'): string {
+  if (!date) return fallback
+  
+  try {
+    const dateObj = typeof date === 'string' ? new Date(date) : date
+    if (isNaN(dateObj.getTime())) return fallback
+    
+    return dateObj.toLocaleDateString('en-US')
+  } catch (error) {
+    return fallback
+  }
 }

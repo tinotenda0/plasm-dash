@@ -315,7 +315,7 @@ export function ContentInsights() {
                     
                     <div className="flex items-center justify-between text-xs text-gray-500">
                       <span>{Math.round(progress)}% complete</span>
-                      <span>Due {new Date(goal.deadline).toLocaleDateString()}</span>
+                      <span>Due {goal.deadline ? new Date(goal.deadline).toLocaleDateString() : 'Date TBD'}</span>
                     </div>
                   </div>
                 </div>

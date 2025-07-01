@@ -339,7 +339,7 @@ export function ExportableReports() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-500">
-                      {new Date(post.publishedAt).toLocaleDateString()}
+                      {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : 'Date unavailable'}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
