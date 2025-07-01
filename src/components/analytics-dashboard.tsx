@@ -1,351 +1,144 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { TrendingUp, Users, Eye, Calendar, BookOpen, Clock } from 'lucide-react'
-
-interface AnalyticsData {
-  totalPosts: number
-  publishedPosts: number
-  draftPosts: number
-  totalViews: number
-  avgViewsPerPost: number
-  topPosts: Array<{
-    id: string
-    title: string
-    views: number
-    publishedAt: string
-  }>
-  monthlyStats: Array<{
-    month: string
-    posts: number
-    views: number
-  }>
-  categoryStats: Array<{
-    category: string
-    count: number
-    percentage: number
-  }>
-}
+import { useState } from 'react'
+import { BarChart, Calendar, Clock, Eye, Users, TrendingUp, Share2 } from 'lucide-react'
+import { RealTimeAnalytics } from './real-time-analytics'
+import { ContentInsights } from './content-insights'
+import { LazyLoad } from './lazy-load'
 
 export function AnalyticsDashboard() {
-  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d')
+  const [activeTab, setActiveTab] = useState<'overview' | 'insights' | 'performance'>('overview')
 
-  useEffect(() => {
-    loadAnalytics()
-  }, [timeRange])
-
-  const loadAnalytics = async () => {
-    setLoading(true)
-    
-    // Simulate loading analytics data
-    // In a real app, this would fetch from your analytics service
-    setTimeout(() => {
-      const mockData: AnalyticsData = {
-        totalPosts: 142,
-        publishedPosts: 89,
-        draftPosts: 53,
-        totalViews: 12450,
-        avgViewsPerPost: 87.6,
-        topPosts: [
-          { id: '1', title: 'Getting Started with Next.js 15', views: 1250, publishedAt: '2024-12-15' },
-          { id: '2', title: 'Advanced TypeScript Patterns', views: 980, publishedAt: '2024-12-10' },
-          { id: '3', title: 'Building Modern UIs with Tailwind', views: 756, publishedAt: '2024-12-08' },
-          { id: '4', title: 'React Server Components Guide', views: 634, publishedAt: '2024-12-05' },
-          { id: '5', title: 'API Design Best Practices', views: 512, publishedAt: '2024-12-01' }
-        ],
-        monthlyStats: [
-          { month: 'Jan 2024', posts: 8, views: 3200 },
-          { month: 'Feb 2024', posts: 12, views: 4100 },
-          { month: 'Mar 2024', posts: 15, views: 5300 },
-          { month: 'Apr 2024', posts: 10, views: 3800 },
-          { month: 'May 2024', posts: 18, views: 6200 },
-          { month: 'Jun 2024', posts: 14, views: 4900 }
-        ],
-        categoryStats: [
-          { category: 'Technology', count: 45, percentage: 52 },
-          { category: 'Tutorial', count: 28, percentage: 32 },
-          { category: 'Review', count: 10, percentage: 11 },
-          { category: 'News', count: 4, percentage: 5 }
-        ]
-      }
-      
-      setAnalytics(mockData)
-      setLoading(false)
-    }, 1000)
-  }
-
-  if (loading || !analytics) {
-    return (
-      <div className="p-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white p-6 rounded-lg border">
-                <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-                <div className="h-8 bg-gray-200 rounded w-3/4"></div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    )
-  }
+  const tabs = [
+    { id: 'overview', label: 'Overview', icon: BarChart },
+    { id: 'insights', label: 'Insights', icon: TrendingUp },
+    { id: 'performance', label: 'Performance', icon: Users }
+  ]
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Analytics</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Track your blog's performance and engagement
-          </p>
-        </div>
+    <div className="space-y-6">
+      {/* Tab Navigation */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          {tabs.map((tab) => {
+            const Icon = tab.icon
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === tab.id
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                {tab.label}
+              </button>
+            )
+          })}
+        </nav>
+      </div>
+
+      {/* Tab Content */}
+      <div className="min-h-[500px]">
+        {activeTab === 'overview' && (
+          <LazyLoad>
+            <RealTimeAnalytics />
+          </LazyLoad>
+        )}
         
-        <select
-          value={timeRange}
-          onChange={(e) => setTimeRange(e.target.value as any)}
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-        >
-          <option value="7d">Last 7 days</option>
-          <option value="30d">Last 30 days</option>
-          <option value="90d">Last 90 days</option>
-          <option value="1y">Last year</option>
-        </select>
-      </div>
-
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <BookOpen className="h-6 w-6 text-gray-400" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Total Posts
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    {analytics.totalPosts}
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <Eye className="h-6 w-6 text-gray-400" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Total Views
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    {analytics.totalViews.toLocaleString()}
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <TrendingUp className="h-6 w-6 text-gray-400" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Avg Views/Post
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    {analytics.avgViewsPerPost.toFixed(1)}
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <Calendar className="h-6 w-6 text-gray-400" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Published
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    {analytics.publishedPosts}
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Monthly Stats */}
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-              Monthly Performance
-            </h3>
-            <div className="space-y-3">
-              {analytics.monthlyStats.map((stat, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">{stat.month}</span>
-                      <span className="text-gray-900 font-medium">
-                        {stat.posts} posts • {stat.views.toLocaleString()} views
-                      </span>
-                    </div>
-                    <div className="mt-1 bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-blue-600 h-2 rounded-full"
-                        style={{
-                          width: `${(stat.views / Math.max(...analytics.monthlyStats.map(s => s.views))) * 100}%`
-                        }}
-                      />
+        {activeTab === 'insights' && (
+          <LazyLoad>
+            <ContentInsights />
+          </LazyLoad>
+        )}
+        
+        {activeTab === 'performance' && (
+          <LazyLoad>
+            <div className="space-y-6">
+              {/* Performance Metrics */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white p-6 rounded-lg border border-gray-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-medium text-gray-900">Content Velocity</h3>
+                    <Calendar className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-2xl font-bold text-gray-900">12</p>
+                    <p className="text-sm text-gray-600">Posts this month</p>
+                    <div className="flex items-center gap-1 text-sm text-green-600">
+                      <TrendingUp className="h-3 w-3" />
+                      <span>+20% from last month</span>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
 
-        {/* Category Distribution */}
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-              Posts by Category
-            </h3>
-            <div className="space-y-3">
-              {analytics.categoryStats.map((category, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">{category.category}</span>
-                      <span className="text-gray-900 font-medium">
-                        {category.count} ({category.percentage}%)
-                      </span>
-                    </div>
-                    <div className="mt-1 bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-green-600 h-2 rounded-full"
-                        style={{ width: `${category.percentage}%` }}
-                      />
+                <div className="bg-white p-6 rounded-lg border border-gray-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-medium text-gray-900">Quality Score</h3>
+                    <Eye className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-2xl font-bold text-gray-900">8.4/10</p>
+                    <p className="text-sm text-gray-600">Based on engagement</p>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="bg-blue-500 h-2 rounded-full" style={{ width: '84%' }} />
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Top Posts */}
-      <div className="bg-white overflow-hidden shadow rounded-lg">
-        <div className="px-4 py-5 sm:p-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-            Top Performing Posts
-          </h3>
-          <div className="overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Title
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Views
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Published
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {analytics.topPosts.map((post, index) => (
-                  <tr key={post.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-8 w-8">
-                          <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                            <span className="text-sm font-medium text-blue-600">
-                              {index + 1}
-                            </span>
-                          </div>
+                <div className="bg-white p-6 rounded-lg border border-gray-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-medium text-gray-900">Consistency</h3>
+                    <Clock className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-2xl font-bold text-gray-900">3.2</p>
+                    <p className="text-sm text-gray-600">Posts per week</p>
+                    <div className="flex items-center gap-1 text-sm text-orange-600">
+                      <span>Target: 4 posts/week</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Content Categories Performance */}
+              <div className="bg-white rounded-lg border border-gray-200">
+                <div className="p-6 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900">Content Categories Performance</h3>
+                </div>
+                <div className="p-6">
+                  <div className="space-y-4">
+                    {[
+                      { category: 'Tutorials', posts: 8, avgViews: 1250, engagement: 18.5 },
+                      { category: 'Reviews', posts: 3, avgViews: 890, engagement: 12.3 },
+                      { category: 'News', posts: 2, avgViews: 2100, engagement: 8.7 },
+                      { category: 'Guides', posts: 5, avgViews: 1680, engagement: 22.1 }
+                    ].map((item) => (
+                      <div key={item.category} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div>
+                          <h4 className="font-medium text-gray-900">{item.category}</h4>
+                          <p className="text-sm text-gray-600">{item.posts} posts</p>
                         </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {post.title}
+                        <div className="flex items-center gap-6 text-sm">
+                          <div className="text-center">
+                            <p className="font-semibold text-gray-900">{item.avgViews}</p>
+                            <p className="text-gray-600">Avg Views</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="font-semibold text-gray-900">{item.engagement}%</p>
+                            <p className="text-gray-600">Engagement</p>
                           </div>
                         </div>
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {post.views.toLocaleString()}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(post.publishedAt).toLocaleDateString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      {/* Publishing Insights */}
-      <div className="bg-white overflow-hidden shadow rounded-lg">
-        <div className="px-4 py-5 sm:p-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-            Publishing Insights
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {Math.round((analytics.publishedPosts / analytics.totalPosts) * 100)}%
+                    ))}
+                  </div>
+                </div>
               </div>
-              <div className="text-sm text-gray-500">Publish Rate</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                {Math.round(analytics.totalPosts / 12)} {/* Assuming monthly average */}
-              </div>
-              <div className="text-sm text-gray-500">Posts per Month</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">
-                {analytics.draftPosts}
-              </div>
-              <div className="text-sm text-gray-500">Drafts Remaining</div>
-            </div>
-          </div>
-        </div>
+          </LazyLoad>
+        )}
       </div>
     </div>
   )
