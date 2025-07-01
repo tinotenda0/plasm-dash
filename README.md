@@ -1,36 +1,304 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Blog Dashboard
 
-## Getting Started
+> A modern, AI-generated blog dashboard built with Next.js, TypeScript, and Sanity CMS
 
-First, run the development server:
+![Dashboard Preview](https://via.placeholder.com/800x400/2563eb/ffffff?text=Blog+Dashboard)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🤖 AI Disclaimer
+
+**This entire project was developed by Claude Sonnet 4, an AI assistant created by Anthropic.** The project was created for Tinotenda Muzovaka as a demonstration of AI-powered development capabilities. While the code has been generated using advanced AI, it follows modern web development best practices and standards.
+
+## ✨ Features
+
+- **📝 Posts Management**: Full CRUD operations for blog posts via Sanity CMS
+- **📅 Calendar View**: Visual representation of posts by publication date
+- **🎯 Content Planning**: Kanban-style board for planning and organizing upcoming posts
+- **📱 Responsive Design**: Mobile-first approach with Tailwind CSS
+- **🔍 Search & Filter**: Find posts quickly with built-in search functionality
+- **🏷️ Tags & Categories**: Organize content with flexible tagging system
+- **📊 Status Tracking**: Track posts through draft, published, and planned states
+
+## 🛠 Technology Stack
+
+- **Framework**: Next.js 15 with App Router
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **CMS**: Sanity
+- **UI Components**: Headless UI, Lucide React
+- **Date Handling**: date-fns
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js 18+ 
+- npm or yarn
+- A Sanity account and project
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd blog-dashboard
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+   ```bash
+   cp .env.local.template .env.local
+   ```
+
+4. **Configure your Sanity project**
+   
+   Edit `.env.local` with your Sanity credentials:
+   ```env
+   SANITY_PROJECT_ID=your_project_id_here
+   SANITY_DATASET=production
+   SANITY_API_VERSION=2024-03-15
+   SANITY_TOKEN=your_token_here
+   NEXT_PUBLIC_SANITY_PROJECT_ID=your_project_id_here
+   NEXT_PUBLIC_SANITY_DATASET=production
+   ```
+
+5. **Start the development server**
+   ```bash
+   npm run dev
+   ```
+
+6. **Open your browser**
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+## 📋 Sanity Setup
+
+### Required Schema
+
+You'll need to create a Sanity schema for blog posts. Here's the basic structure:
+
+```javascript
+// schemas/post.js
+export default {
+  name: 'post',
+  title: 'Post',
+  type: 'document',
+  fields: [
+    {
+      name: 'title',
+      title: 'Title',
+      type: 'string',
+      validation: Rule => Rule.required()
+    },
+    {
+      name: 'slug',
+      title: 'Slug',
+      type: 'slug',
+      options: {
+        source: 'title',
+        maxLength: 96,
+      },
+      validation: Rule => Rule.required()
+    },
+    {
+      name: 'excerpt',
+      title: 'Excerpt',
+      type: 'text',
+      rows: 3
+    },
+    {
+      name: 'content',
+      title: 'Content',
+      type: 'array',
+      of: [{type: 'block'}]
+    },
+    {
+      name: 'publishedAt',
+      title: 'Published at',
+      type: 'datetime'
+    },
+    {
+      name: 'status',
+      title: 'Status',
+      type: 'string',
+      options: {
+        list: [
+          {title: 'Draft', value: 'draft'},
+          {title: 'Published', value: 'published'},
+          {title: 'Scheduled', value: 'scheduled'}
+        ]
+      },
+      initialValue: 'draft'
+    },
+    {
+      name: 'tags',
+      title: 'Tags',
+      type: 'array',
+      of: [{type: 'string'}]
+    },
+    {
+      name: 'category',
+      title: 'Category',
+      type: 'string'
+    },
+    {
+      name: 'featuredImage',
+      title: 'Featured Image',
+      type: 'image',
+      options: {
+        hotspot: true
+      },
+      fields: [
+        {
+          name: 'alt',
+          title: 'Alt Text',
+          type: 'string'
+        }
+      ]
+    }
+  ]
+}
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Getting Your Credentials
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Project ID**: Found in your Sanity project settings
+2. **Dataset**: Usually 'production' for live sites
+3. **API Token**: Create a token in your Sanity project settings with read/write permissions
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📖 Usage Guide
 
-## Learn More
+### Managing Posts
 
-To learn more about Next.js, take a look at the following resources:
+1. **Create New Post**: Click "New Post" button in the Posts section
+2. **Edit Post**: Click the "Edit" button on any post card
+3. **Delete Post**: Click the "Delete" button (with confirmation)
+4. **Search Posts**: Use the search bar to find specific posts
+5. **Filter Posts**: Use status filters to view drafts, published, etc.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Content Planning
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. **Plan New Post**: Navigate to Planning section and click "Plan New Post"
+2. **Track Progress**: Move posts through Planned → In Progress → Completed
+3. **Set Priorities**: Mark posts as High, Medium, or Low priority
+4. **Schedule Content**: Set planned publication dates
 
-## Deploy on Vercel
+### Calendar View
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Monthly Overview**: See all posts and planned content in calendar format
+- **Status Indicators**: Different colors for published, draft, and planned content
+- **Quick Navigation**: Jump to current month or navigate through dates
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🔧 Configuration
+
+### Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `SANITY_PROJECT_ID` | Your Sanity project ID | Yes |
+| `SANITY_DATASET` | Dataset name (usually 'production') | Yes |
+| `SANITY_API_VERSION` | API version (e.g., '2024-03-15') | No |
+| `SANITY_TOKEN` | API token with read/write permissions | Yes |
+| `NEXT_PUBLIC_SANITY_PROJECT_ID` | Public project ID for client-side | Yes |
+| `NEXT_PUBLIC_SANITY_DATASET` | Public dataset name | Yes |
+
+### Customization
+
+The dashboard is built to be generic and reusable. You can customize:
+
+- **Branding**: Update colors, fonts, and logos in the Tailwind config
+- **Schema**: Modify the Sanity schema to match your content needs  
+- **Features**: Add or remove functionality based on your requirements
+
+## 📝 Development Roadmap
+
+### Phase 1: Core Functionality ✅
+- [x] Basic post management (CRUD)
+- [x] Calendar view with post visualization
+- [x] Content planning with Kanban board
+- [x] Responsive design
+- [x] Sanity CMS integration
+
+### Phase 2: Enhanced Features 🚧
+- [ ] Rich text editor for post content
+- [ ] Image upload and management
+- [ ] Bulk post operations
+- [ ] Advanced search and filtering
+- [ ] Post templates and categories
+- [ ] Scheduled publishing
+
+### Phase 3: Analytics & Insights 📋
+- [ ] Post performance analytics
+- [ ] Traffic and engagement metrics
+- [ ] SEO optimization suggestions
+- [ ] Content performance insights
+- [ ] Author collaboration tools
+
+### Phase 4: Advanced Features 🔮
+- [ ] Multi-author support
+- [ ] Comment management
+- [ ] Newsletter integration
+- [ ] Social media scheduling
+- [ ] Content AI suggestions
+- [ ] Advanced workflow automation
+
+## 🎨 Suggested Project Names
+
+Here are some abstract name suggestions for this project:
+
+1. **Quill** - Simple, writing-focused
+2. **Prism** - Reflects the multi-faceted nature of content management
+3. **Nexus** - Connection point for all your content needs
+4. **Canvas** - A blank slate for creativity
+5. **Flux** - Continuous flow of content
+6. **Zen Dashboard** - Calm, organized content management
+7. **Echo** - Your voice amplified
+8. **Orbit** - Everything revolves around your content
+9. **Spark** - Ignite your creativity
+10. **Tide** - Ebb and flow of content creation
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**Posts not loading**
+- Check your Sanity credentials in `.env.local`
+- Verify your Sanity project is accessible
+- Ensure your API token has the correct permissions
+
+**Calendar events not showing**
+- Make sure posts have `publishedAt` dates
+- Check that planned posts are being saved to localStorage
+- Verify date formatting in your data
+
+**Styling issues**
+- Ensure Tailwind CSS is properly configured
+- Check for conflicting CSS classes
+- Verify all required dependencies are installed
+
+### Getting Help
+
+If you encounter issues:
+
+1. Check the browser console for error messages
+2. Verify your environment configuration
+3. Review the Sanity project setup
+4. Check the project's GitHub issues (if available)
+
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+## 🙏 Acknowledgments
+
+- **Claude Sonnet 4** - AI assistant that created this entire project
+- **Tinotenda Muzovaka** - Project owner and visionary
+- **Next.js Team** - For the amazing React framework
+- **Sanity** - For the flexible content management system
+- **Tailwind CSS** - For the utility-first CSS framework
+
+---
+
+**Built with ❤️ by AI for the future of content management**
