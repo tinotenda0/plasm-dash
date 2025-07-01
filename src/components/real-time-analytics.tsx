@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, Users, Eye, Clock, Star } from 'lucide-react';
 import { LazyLoad } from './lazy-load';
+import { LineChart } from './charts';
 
 interface AnalyticsMetric {
   label: string;
@@ -14,16 +15,17 @@ interface AnalyticsMetric {
 }
 
 interface PerformanceData {
-  metrics: AnalyticsMetric[];
-  chartData: {
-    labels: string[];
-    datasets: {
-      label: string;
-      data: number[];
-      borderColor: string;
-      backgroundColor: string;
-    }[];
-  };
+  metrics: AnalyticsMetric[];      chartData: {
+        labels: string[];
+        datasets: {
+          label: string;
+          data: number[];
+          borderColor: string;
+          backgroundColor: string;
+          fill?: boolean;
+          tension?: number;
+        }[];
+      };
   topPosts: {
     id: string;
     title: string;
@@ -89,13 +91,17 @@ export function RealTimeAnalytics() {
             label: 'Views',
             data: Array.from({ length: 7 }, () => Math.floor(Math.random() * 1000) + 500),
             borderColor: '#3B82F6',
-            backgroundColor: '#EFF6FF'
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            fill: true,
+            tension: 0.4
           },
           {
             label: 'Visitors',
             data: Array.from({ length: 7 }, () => Math.floor(Math.random() * 300) + 150),
             borderColor: '#10B981',
-            backgroundColor: '#ECFDF5'
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            fill: true,
+            tension: 0.4
           }
         ]
       },
@@ -216,19 +222,32 @@ export function RealTimeAnalytics() {
         ))}
       </div>
 
-      {/* Chart Section (Placeholder for now) */}
+      {/* Chart Section */}
       <LazyLoad threshold={0.1}>
         <div className="bg-white p-6 rounded-lg border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Weekly Performance</h3>
-          <div className="h-64 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg flex items-center justify-center">
-            <div className="text-center">
-              <TrendingUp className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-600 font-medium">Chart visualization</p>
-              <p className="text-sm text-gray-500">
-                Integration with Chart.js or similar coming soon
-              </p>
-            </div>
-          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Weekly Performance Trend</h3>
+          <LineChart 
+            data={data.chartData} 
+            height={280}
+            options={{
+              plugins: {
+                legend: {
+                  position: 'top',
+                  align: 'end',
+                },
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  ticks: {
+                    callback: function(value) {
+                      return typeof value === 'number' ? value.toLocaleString() : value;
+                    }
+                  }
+                }
+              }
+            }}
+          />
         </div>
       </LazyLoad>
 

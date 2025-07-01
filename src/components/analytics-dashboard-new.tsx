@@ -1,19 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import { BarChart, Calendar, Clock, Eye, Users, TrendingUp, Share2, Brain } from 'lucide-react'
+import { BarChart, Calendar, Clock, Eye, Users, TrendingUp, Share2 } from 'lucide-react'
 import { RealTimeAnalytics } from './real-time-analytics'
 import { ContentInsights } from './content-insights'
-import { AIContentInsights } from './ai-content-insights'
 import { LazyLoad } from './lazy-load'
 
 export function AnalyticsDashboard() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'insights' | 'ai-insights' | 'performance'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'insights' | 'performance'>('overview')
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: BarChart },
     { id: 'insights', label: 'Insights', icon: TrendingUp },
-    { id: 'ai-insights', label: 'AI Insights', icon: Brain },
     { id: 'performance', label: 'Performance', icon: Users }
   ]
 
@@ -53,12 +51,6 @@ export function AnalyticsDashboard() {
         {activeTab === 'insights' && (
           <LazyLoad>
             <ContentInsights />
-          </LazyLoad>
-        )}
-        
-        {activeTab === 'ai-insights' && (
-          <LazyLoad>
-            <AIContentInsights />
           </LazyLoad>
         )}
         

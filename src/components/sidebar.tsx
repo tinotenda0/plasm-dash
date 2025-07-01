@@ -7,6 +7,7 @@ import {
   Calendar, 
   PenTool, 
   BarChart3,
+  FileBarChart,
   Settings
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -16,6 +17,7 @@ const navigation = [
   { name: 'Calendar', href: '/calendar', icon: Calendar },
   { name: 'Planning', href: '/planning', icon: PenTool },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+  { name: 'Reports', href: '/reports', icon: FileBarChart },
   { name: 'Settings', href: '/settings', icon: Settings },
 ]
 
