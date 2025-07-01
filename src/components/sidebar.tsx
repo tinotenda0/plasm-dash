@@ -8,6 +8,8 @@ import {
   PenTool, 
   BarChart3,
   FileBarChart,
+  Users,
+  GitBranch,
   Settings
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -18,6 +20,8 @@ const navigation = [
   { name: 'Planning', href: '/planning', icon: PenTool },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Reports', href: '/reports', icon: FileBarChart },
+  { name: 'Team', href: '/team', icon: Users },
+  { name: 'Workflow', href: '/workflow', icon: GitBranch },
   { name: 'Settings', href: '/settings', icon: Settings },
 ]
 
